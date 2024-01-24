@@ -4,15 +4,32 @@
  */
 package Vista;
 
+import Modelo.ClienteHilo;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author ruben
  */
 public class Cliente extends javax.swing.JDialog {
 
-    /**
-     * Creates new form Cliente
-     */
+    private int jugadas = 0;
+    private int premios = 0;
+    private int intentos = 0;
+
+    public int getPremios() {
+        return premios;
+    }
+
+    public void setPremios(int premios) {
+        this.premios = premios;
+    }
+    
+    
+
     public Cliente(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
@@ -75,8 +92,18 @@ public class Cliente extends javax.swing.JDialog {
         jScrollPane1.setViewportView(jTApanel);
 
         jBenviar.setText("Enviar");
+        jBenviar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jBenviarActionPerformed(evt);
+            }
+        });
 
         jBsalir.setText("Salir");
+        jBsalir.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jBsalirActionPerformed(evt);
+            }
+        });
 
         jLabel4.setText("Jugadas:");
 
@@ -99,29 +126,30 @@ public class Cliente extends javax.swing.JDialog {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
+                .addGap(37, 37, 37)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addGroup(layout.createSequentialGroup()
-                                .addGap(63, 63, 63)
                                 .addComponent(jLabel1)
-                                .addGap(73, 73, 73)
-                                .addComponent(jLabel2))
+                                .addGap(82, 82, 82)
+                                .addComponent(jLabel2)
+                                .addGap(51, 51, 51))
                             .addGroup(layout.createSequentialGroup()
-                                .addGap(51, 51, 51)
                                 .addComponent(jTFid, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(50, 50, 50)
-                                .addComponent(jTFfila, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(44, 44, 44)
+                                .addComponent(jTFfila, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)))
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel3)
-                            .addComponent(jTFcolumna, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(121, 121, 121)
+                            .addComponent(jTFcolumna, javax.swing.GroupLayout.PREFERRED_SIZE, 87, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(16, 16, 16)
+                                .addComponent(jLabel3)))
+                        .addGap(98, 98, 98)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jBsalir)
                             .addComponent(jBenviar)))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(37, 37, 37)
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 310, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(54, 54, 54)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
@@ -139,12 +167,17 @@ public class Cliente extends javax.swing.JDialog {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(66, 66, 66)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(jLabel2)
-                    .addComponent(jLabel3)
-                    .addComponent(jBenviar))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(66, 66, 66)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel1)
+                            .addComponent(jBenviar)))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel3)
+                            .addComponent(jLabel2))))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -193,6 +226,39 @@ public class Cliente extends javax.swing.JDialog {
     private void jTFcolumnaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTFcolumnaActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jTFcolumnaActionPerformed
+
+    private void jBenviarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBenviarActionPerformed
+        jugadas++;
+        if (jugadas <= 4) {
+
+            jTFjugadas.setText(String.valueOf(jugadas));
+            String fila = jTFfila.getText();
+            String columna = jTFcolumna.getText();
+            ClienteHilo cliente = new ClienteHilo(fila + " " + columna, this);
+            cliente.start();
+        } else {
+              JOptionPane.showMessageDialog(this, "Ya has jugado demasiado, DESCANSA Y VETE!!!");
+        }
+
+    }//GEN-LAST:event_jBenviarActionPerformed
+
+    private void jBsalirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBsalirActionPerformed
+        dispose();
+    }//GEN-LAST:event_jBsalirActionPerformed
+
+    //Metodo que se utiliza para añadir texto en mi textArea, de los demas clientes
+    public void appendTextArea(String fila, String columna, String premio) {
+        String textoAnterior = jTApanel.getText();
+        String textoFinal = textoAnterior + "\n" + "[" + fila + "]" + "[" + columna + "] " + premio;
+        jTApanel.setText(textoFinal);
+        if(!premio.equals("SIN PREMIO")){
+            premios++;
+            jTFpremios.setText(String.valueOf(premios));
+        }else{
+            jTFpremios.setText(String.valueOf(premios));
+        }
+
+    }
 
     /**
      * @param args the command line arguments

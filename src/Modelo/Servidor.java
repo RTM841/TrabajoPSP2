@@ -27,6 +27,7 @@ public class Servidor {
     private ExecutorService executorService; // Pool de hilos para manejar a los usuarios
 
     private class Usuario {
+
         private int id;
         private InetAddress direccion;
         private int puerto;
@@ -76,9 +77,12 @@ public class Servidor {
     }
 
     public void iniciar() {
+        
+
         try {
             socket = new DatagramSocket(PUERTO);
             System.out.println("Servidor iniciado en el puerto " + PUERTO);
+            System.out.println("Posiciones con premio [0,0][1,3][2,4][2,0]");
 
             while (true) {
                 byte[] buffer = new byte[TAMANO_BUFFER];
@@ -114,10 +118,10 @@ public class Servidor {
         // Incrementar el número de intentos del usuario
         usuario.incrementarIntentos();
 
-        System.out.println("Usuario " + usuario.getId() + " conectado desde " +
-                usuario.getDireccion() + ":" + usuario.getPuerto() +
-                " - Intento: " + usuario.getIntentos() +
-                " - Premios: " + usuario.getPremios());
+        System.out.println("Usuario " + usuario.getId() + " conectado desde "
+                + usuario.getDireccion() + ":" + usuario.getPuerto()
+                + " - Intento: " + usuario.getIntentos()
+                + " - Premios: " + usuario.getPremios());
 
         // Realizar la lógica del juego y verificar si el usuario ha ganado un premio
         if (usuario.getIntentos() <= MAX_INTENTOS) {
@@ -155,19 +159,14 @@ public class Servidor {
     public static void main(String[] args) {
         Servidor servidor = new Servidor();
         servidor.iniciar();
-        
-         // Matriz de 3x4
+
+        // Matriz de 3x4
         String[][] tablero = new String[3][4];
-        
+
         tablero[0][0] = "1000€";
         tablero[1][3] = "Viaje";
         tablero[2][4] = "Play 5";
         tablero[2][0] = "Entradas Final Champions";
         
-        
-        System.out.println("Servidor inciado");
-        System.out.println("Posiciones con premio [0,0][1,3][2,4][2,0]");
     }
 }
-
-      
