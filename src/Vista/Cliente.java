@@ -33,6 +33,11 @@ public class Cliente extends javax.swing.JDialog {
     public Cliente(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
+        
+        
+            ClienteHilo cliente = new ClienteHilo(this);
+            cliente.start();
+        
     }
 
     /**
@@ -234,8 +239,6 @@ public class Cliente extends javax.swing.JDialog {
             jTFjugadas.setText(String.valueOf(jugadas));
             String fila = jTFfila.getText();
             String columna = jTFcolumna.getText();
-            ClienteHilo cliente = new ClienteHilo(fila + " " + columna, this);
-            cliente.start();
         } else {
               JOptionPane.showMessageDialog(this, "Ya has jugado demasiado, DESCANSA Y VETE!!!");
         }
@@ -258,6 +261,12 @@ public class Cliente extends javax.swing.JDialog {
             jTFpremios.setText(String.valueOf(premios));
         }
 
+    }
+    
+    public String getMensaje(){
+        String fila = jTFfila.getText();
+        String columna = jTFcolumna.getText();
+        return fila + " " + columna;
     }
 
     /**

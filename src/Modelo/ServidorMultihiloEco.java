@@ -18,41 +18,6 @@ import java.util.logging.Logger;
  *
  * @author DAM
  */
-class Tablero {
-
-    // Matriz de 3x4
-    private String[][] tablero = {
-        {"1000€", "", "", ""},
-        {"", "Entradas Final Champions", "", "Viaje"},
-        {"", "", "Play 5", ""}
-    };
-
-    public synchronized String[][] getTablero() {
-        return tablero;
-    }
-
-    public void setTablero(String[][] tablero) {
-        this.tablero = tablero;
-    }
-
-    public synchronized String obtenerPremio(int fila, int columna) throws InterruptedException {
-        String premio;
-        // Verificar que las coordenadas estén dentro del rango del tablero
-        if (fila >= 0 && fila < getTablero().length && columna >= 0 && columna < getTablero()[fila].length) {
-            premio = getTablero()[fila][columna];
-        } else {
-            premio = ""; // Fuera de las dimensiones del tablero
-        }
-
-        if (!premio.isEmpty()) {
-            getTablero()[fila][columna] = "";
-            return premio;
-        } else {
-            return premio;
-        }
-    }
-
-}
 
 class HiloServidor implements Runnable {
 
@@ -70,12 +35,14 @@ class HiloServidor implements Runnable {
         try (   
                 InputStream isDeCliente = this.socketComunicacion.getInputStream();  
                 OutputStream osACliente = this.socketComunicacion.getOutputStream();
-                ObjectOutputStream otStream = new ObjectOutputStream(osACliente);
                 InputStreamReader isrDeCliente = new InputStreamReader(isDeCliente, COD_TEXTO);  
                 BufferedReader brDeCliente = new BufferedReader(isrDeCliente);  
                 OutputStreamWriter oswACliente = new OutputStreamWriter(osACliente, COD_TEXTO);  
                 BufferedWriter bwACliente = new BufferedWriter(oswACliente)) {
                
+                enviarObjetoAlCliente(socketComunicacion, tablero);
+            
+            
                 String lineaRecibida;
             while ((lineaRecibida = brDeCliente.readLine()) != null && lineaRecibida.length() > 0) {
                 System.out.println("Recibido: " + lineaRecibida);
@@ -86,7 +53,6 @@ class HiloServidor implements Runnable {
                 if (coordenadas != null) {
                      fila = coordenadas[0];
                      columna = coordenadas[1];
-                    System.out.println("Fila: " + fila + ", Columna: " + columna);
                 } else {
                     System.out.println("El mensaje no tiene el formato correcto.");
                 }
@@ -140,6 +106,15 @@ class HiloServidor implements Runnable {
         return null;
     }
 
+    private static void enviarObjetoAlCliente(Socket clienteSocket, Object objeto) {
+        try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(clienteSocket.getOutputStream())) {
+            objectOutputStream.writeObject(objeto);
+            System.out.println("Objeto enviado al cliente: " + objeto);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
 }
 
 class ServidorMultihiloEco {
@@ -170,15 +145,6 @@ class ServidorMultihiloEco {
         }
     }
     
-    private static void enviarMensajeAlCliente(Socket clienteSocket, String mensaje) {
-        try {
-            OutputStream outputStream = clienteSocket.getOutputStream();
-            byte[] mensajeBytes = mensaje.getBytes();
-            outputStream.write(mensajeBytes);
-            System.out.println("Mensaje enviado al cliente: " + mensaje);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+    
 
 }
