@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.DataOutputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.util.logging.Level;
@@ -18,60 +19,78 @@ import java.util.logging.Logger;
  *
  * @author DAM
  */
-
 class HiloServidor implements Runnable {
 
     private final static String COD_TEXTO = "UTF-8";
     private final Socket socketComunicacion;
     private final Tablero tablero;
-    
-    HiloServidor(Socket socketComunicacion,Tablero miTablero) {
+    private int id = 1;
+
+    HiloServidor(Socket socketComunicacion, Tablero miTablero) {
         this.socketComunicacion = socketComunicacion;
         this.tablero = miTablero;
     }
 
     @Override
     public void run() {
-        try (   
-                InputStream isDeCliente = this.socketComunicacion.getInputStream();  
-                OutputStream osACliente = this.socketComunicacion.getOutputStream();
+        try {
+            empezarServidor();
+        } catch (InterruptedException ex) {
+            Logger.getLogger(HiloServidor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void empezarServidor() throws InterruptedException {
+        try (
+                 InputStream isDeCliente = this.socketComunicacion.getInputStream();  
+                OutputStream osACliente = this.socketComunicacion.getOutputStream();  
                 InputStreamReader isrDeCliente = new InputStreamReader(isDeCliente, COD_TEXTO);  
                 BufferedReader brDeCliente = new BufferedReader(isrDeCliente);  
                 OutputStreamWriter oswACliente = new OutputStreamWriter(osACliente, COD_TEXTO);  
-                BufferedWriter bwACliente = new BufferedWriter(oswACliente)) {
-               
-                enviarObjetoAlCliente(socketComunicacion, tablero);
-            
-            
-                String lineaRecibida;
+                BufferedWriter bwACliente = new BufferedWriter(oswACliente);  
+                ObjectOutputStream objectOutputStream = new ObjectOutputStream(socketComunicacion.getOutputStream())) {
+
+            String lineaRecibida;
             while ((lineaRecibida = brDeCliente.readLine()) != null && lineaRecibida.length() > 0) {
-                System.out.println("Recibido: " + lineaRecibida);
-                //Comprobar en el tablero si hay premio
-                int[] coordenadas = obtenerCoordenadasDesdeMensaje(lineaRecibida);
-                int fila = 0;
-                int columna = 0;
-                if (coordenadas != null) {
-                     fila = coordenadas[0];
-                     columna = coordenadas[1];
+
+                if (lineaRecibida.equals("REGISTER")) {
+                    enviarMensajeAlCliente(bwACliente, id++);
+                    objectOutputStream.writeObject(tablero);
                 } else {
-                    System.out.println("El mensaje no tiene el formato correcto.");
+                    objectOutputStream.writeObject(tablero);
+                    System.out.println("Objeto enviado al cliente " + tablero);
+                    System.out.println("Recibido: " + lineaRecibida);
+                    //Comprobar en el tablero si hay premio
+                    int[] coordenadas = obtenerCoordenadasDesdeMensaje(lineaRecibida);
+                    int fila = 0;
+                    int columna = 0;
+                    if (coordenadas != null) {
+                        fila = coordenadas[0];
+                        columna = coordenadas[1];
+                    } else {
+                        System.out.println("El mensaje no tiene el formato correcto.");
+                    }
+                    String premio = tablero.obtenerPremio(fila, columna);
+                    if (!premio.equalsIgnoreCase("")) {
+                        bwACliente.write(fila + "," + columna + "," + premio);
+                    } else {
+                        bwACliente.write(fila + "," + columna + "," + "SIN PREMIO");
+                    }
+                    bwACliente.newLine();
+                    bwACliente.flush();
+                    objectOutputStream.writeObject(tablero);
                 }
-                String premio = tablero.obtenerPremio(fila, columna);
-                if (!premio.equalsIgnoreCase("")) {
-                    bwACliente.write(fila+","+columna+","+premio);
-                }else{
-                    bwACliente.write(fila+","+columna+","+"SIN PREMIO");
-                }
-                bwACliente.newLine();
-                bwACliente.flush();
+
+                
+                /* */
             }
         } catch (IOException ex) {
             System.out.println("Excepción de E/S");
             ex.printStackTrace();
             System.exit(1);
-        } catch (InterruptedException ex) {
+        }/* catch (InterruptedException ex) {
             Logger.getLogger(HiloServidor.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
+        }*/ finally {
             if (this.socketComunicacion != null) {
                 try {
                     this.socketComunicacion.close();
@@ -79,6 +98,17 @@ class HiloServidor implements Runnable {
                 } catch (IOException ex) {
                 }
             }
+        }
+    }
+
+    private static void enviarMensajeAlCliente(BufferedWriter bwACliente, int mensaje) {
+        try {
+            bwACliente.write(String.valueOf(mensaje));
+            bwACliente.newLine();
+            bwACliente.flush();
+            System.out.println("Mensaje enviado al cliente: " + mensaje);
+        } catch (IOException ex) {
+            Logger.getLogger(HiloServidor.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -107,14 +137,23 @@ class HiloServidor implements Runnable {
     }
 
     private static void enviarObjetoAlCliente(Socket clienteSocket, Object objeto) {
-        try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(clienteSocket.getOutputStream())) {
+        try ( ObjectOutputStream objectOutputStream = new ObjectOutputStream(clienteSocket.getOutputStream())) {
             objectOutputStream.writeObject(objeto);
             System.out.println("Objeto enviado al cliente: " + objeto);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-    
+
+    /* private static void enviarIDAlCliente(Socket clienteSocket, int entero) {
+        try (DataOutputStream dataOutputStream = new DataOutputStream(clienteSocket.getOutputStream())) {
+            dataOutputStream.writeInt(entero);
+            System.out.println("ID enviado al cliente: " + entero);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+     */
 }
 
 class ServidorMultihiloEco {
@@ -127,14 +166,13 @@ class ServidorMultihiloEco {
         try ( ServerSocket socketServidor = new ServerSocket(numPuerto)) {
             System.out.printf("Creado socket de servidor en puerto %d. Esperando conexiones de clientes.\n", numPuerto);
 
-           
             while (true) {    // Acepta una conexión de cliente tras otra
                 Socket socketComNuevoCliente = socketServidor.accept();
                 System.out.printf("Cliente conectado desde %s:%d.\n",
                         socketComNuevoCliente.getInetAddress().getHostAddress(),
                         socketComNuevoCliente.getPort());
-                
-                Thread hiloSesion = new Thread(new HiloServidor(socketComNuevoCliente,miTablero));
+
+                Thread hiloSesion = new Thread(new HiloServidor(socketComNuevoCliente, miTablero));
                 hiloSesion.start();
             }
 
@@ -144,7 +182,5 @@ class ServidorMultihiloEco {
             System.exit(1);
         }
     }
-    
-    
 
 }

@@ -6,6 +6,8 @@ package Vista;
 
 import Modelo.ClienteHilo;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -15,28 +17,28 @@ import javax.swing.JOptionPane;
  * @author ruben
  */
 public class Cliente extends javax.swing.JDialog {
-
+    
     private int jugadas = 0;
     private int premios = 0;
     private int intentos = 0;
-
+    private int id = 0;
+    ClienteHilo cliente;
+    private String mensaje = "";
+    
     public int getPremios() {
         return premios;
     }
-
+    
     public void setPremios(int premios) {
         this.premios = premios;
     }
     
-    
-
     public Cliente(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
         
-        
-            ClienteHilo cliente = new ClienteHilo(this);
-            cliente.start();
+        cliente = new ClienteHilo(this);
+        cliente.start();
         
     }
 
@@ -235,12 +237,20 @@ public class Cliente extends javax.swing.JDialog {
     private void jBenviarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBenviarActionPerformed
         jugadas++;
         if (jugadas <= 4) {
-
+            
+             /*final String servidorIP = "localhost";
+            final int puerto = 4444;*/
             jTFjugadas.setText(String.valueOf(jugadas));
             String fila = jTFfila.getText();
             String columna = jTFcolumna.getText();
+            setMensaje(fila + " " + columna);
+            /*try (Socket socket = new Socket(servidorIP, puerto)) {
+            enviarMensajeAlServidor(socket, fila+" "+columna);
+            } catch (IOException e) {
+            e.printStackTrace();
+            }*/
         } else {
-              JOptionPane.showMessageDialog(this, "Ya has jugado demasiado, DESCANSA Y VETE!!!");
+            JOptionPane.showMessageDialog(this, "Ya has jugado demasiado, DESCANSA Y VETE!!!");
         }
 
     }//GEN-LAST:event_jBenviarActionPerformed
@@ -248,27 +258,48 @@ public class Cliente extends javax.swing.JDialog {
     private void jBsalirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBsalirActionPerformed
         dispose();
     }//GEN-LAST:event_jBsalirActionPerformed
+    
+   /* private static void enviarMensajeAlServidor(Socket socket, String mensaje) {
+        try (OutputStream outputStream = socket.getOutputStream()) {
+            byte[] mensajeBytes = mensaje.getBytes();
+            outputStream.write(mensajeBytes);
+            System.out.println("Mensaje enviado al servidor: " + mensaje);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }*/
 
     //Metodo que se utiliza para añadir texto en mi textArea, de los demas clientes
     public void appendTextArea(String fila, String columna, String premio) {
         String textoAnterior = jTApanel.getText();
         String textoFinal = textoAnterior + "\n" + "[" + fila + "]" + "[" + columna + "] " + premio;
         jTApanel.setText(textoFinal);
-        if(!premio.equals("SIN PREMIO")){
+        if (!premio.equals("SIN PREMIO")) {
             premios++;
             jTFpremios.setText(String.valueOf(premios));
-        }else{
+        } else {
             jTFpremios.setText(String.valueOf(premios));
         }
-
+        
     }
     
-    public String getMensaje(){
+    public String getMensaje() {
+        return mensaje;
+    }
+    
+    public void setMensaje(String mensaje) {
+        this.mensaje = mensaje;
+    }
+    
+    public void escribirId(Integer id) {
+        jTFid.setText(String.valueOf(id));
+    }
+
+    /*public String getMensaje(){
         String fila = jTFfila.getText();
         String columna = jTFcolumna.getText();
         return fila + " " + columna;
-    }
-
+    }*/
     /**
      * @param args the command line arguments
      */
