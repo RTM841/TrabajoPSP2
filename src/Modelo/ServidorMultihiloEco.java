@@ -9,9 +9,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.DataOutputStream;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,7 +21,7 @@ class HiloServidor implements Runnable {
     private final static String COD_TEXTO = "UTF-8";
     private final Socket socketComunicacion;
     private final Tablero tablero;
-    private int id = 1;
+    private int id = 0;
 
     HiloServidor(Socket socketComunicacion, Tablero miTablero) {
         this.socketComunicacion = socketComunicacion;
@@ -47,18 +44,15 @@ class HiloServidor implements Runnable {
                 InputStreamReader isrDeCliente = new InputStreamReader(isDeCliente, COD_TEXTO);  
                 BufferedReader brDeCliente = new BufferedReader(isrDeCliente);  
                 OutputStreamWriter oswACliente = new OutputStreamWriter(osACliente, COD_TEXTO);  
-                BufferedWriter bwACliente = new BufferedWriter(oswACliente);  
-                ObjectOutputStream objectOutputStream = new ObjectOutputStream(socketComunicacion.getOutputStream())) {
+                BufferedWriter bwACliente = new BufferedWriter(oswACliente)) {
 
             String lineaRecibida;
             while ((lineaRecibida = brDeCliente.readLine()) != null && lineaRecibida.length() > 0) {
 
                 if (lineaRecibida.equals("REGISTER")) {
                     enviarMensajeAlCliente(bwACliente, id++);
-                    objectOutputStream.writeObject(tablero);
+                   
                 } else {
-                    objectOutputStream.writeObject(tablero);
-                    System.out.println("Objeto enviado al cliente " + tablero);
                     System.out.println("Recibido: " + lineaRecibida);
                     //Comprobar en el tablero si hay premio
                     int[] coordenadas = obtenerCoordenadasDesdeMensaje(lineaRecibida);
@@ -78,7 +72,7 @@ class HiloServidor implements Runnable {
                     }
                     bwACliente.newLine();
                     bwACliente.flush();
-                    objectOutputStream.writeObject(tablero);
+                   
                 }
 
                 
@@ -135,25 +129,6 @@ class HiloServidor implements Runnable {
         // Devolver null si el mensaje no tiene el formato correcto
         return null;
     }
-
-    private static void enviarObjetoAlCliente(Socket clienteSocket, Object objeto) {
-        try ( ObjectOutputStream objectOutputStream = new ObjectOutputStream(clienteSocket.getOutputStream())) {
-            objectOutputStream.writeObject(objeto);
-            System.out.println("Objeto enviado al cliente: " + objeto);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /* private static void enviarIDAlCliente(Socket clienteSocket, int entero) {
-        try (DataOutputStream dataOutputStream = new DataOutputStream(clienteSocket.getOutputStream())) {
-            dataOutputStream.writeInt(entero);
-            System.out.println("ID enviado al cliente: " + entero);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-     */
 }
 
 class ServidorMultihiloEco {
@@ -161,17 +136,16 @@ class ServidorMultihiloEco {
     public static void main(String[] args) {
 
         int numPuerto = 4444;
-        int id = 1;
+        int id = 0;
         Tablero miTablero = new Tablero();
         try ( ServerSocket socketServidor = new ServerSocket(numPuerto)) {
             System.out.printf("Creado socket de servidor en puerto %d. Esperando conexiones de clientes.\n", numPuerto);
 
             while (true) {    // Acepta una conexión de cliente tras otra
                 Socket socketComNuevoCliente = socketServidor.accept();
-                System.out.printf("Cliente conectado desde %s:%d.\n",
-                        socketComNuevoCliente.getInetAddress().getHostAddress(),
-                        socketComNuevoCliente.getPort());
-
+                System.out.printf("Cliente conectado desde %s:%d\n",
+                        socketComNuevoCliente.getInetAddress().getHostAddress());
+                
                 Thread hiloSesion = new Thread(new HiloServidor(socketComNuevoCliente, miTablero));
                 hiloSesion.start();
             }

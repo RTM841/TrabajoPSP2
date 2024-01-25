@@ -243,7 +243,7 @@ public class Cliente extends javax.swing.JDialog {
             jTFjugadas.setText(String.valueOf(jugadas));
             String fila = jTFfila.getText();
             String columna = jTFcolumna.getText();
-            setMensaje(fila + " " + columna);
+             mensaje = fila + " " + columna;
             /*try (Socket socket = new Socket(servidorIP, puerto)) {
             enviarMensajeAlServidor(socket, fila+" "+columna);
             } catch (IOException e) {
@@ -281,6 +281,10 @@ public class Cliente extends javax.swing.JDialog {
             jTFpremios.setText(String.valueOf(premios));
         }
         
+    }
+    
+    public void escribirId(String id){
+        jTFid.setText(id);
     }
     
     public String getMensaje() {
