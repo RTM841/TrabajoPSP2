@@ -40,44 +40,36 @@ public class ClienteHilo extends Thread {
             empezarCliente();
         } catch (IOException ex) {
             Logger.getLogger(ClienteHilo.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(ClienteHilo.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    public synchronized void empezarCliente() throws IOException {
+    public synchronized void empezarCliente() throws IOException, ClassNotFoundException {
         Socket socketCliente = null;
         BufferedReader entrada = null;
         PrintWriter salida = null;
         String idRecibido = "";
-        Tablero miTablero = null;
         ObjectInputStream objectInputStream = null;
         boolean register = false;
         // Creamos un socket en el lado cliente, enlazado con un
         // servidor que está en la misma máquina que el cliente
         // y que escucha en el puerto 4444
         try {
-                socketCliente = new Socket("localhost", 4444);
-                // Obtenemos el canal de entrada
-                entrada = new BufferedReader(
-                        new InputStreamReader(socketCliente.getInputStream()));
-                // Obtenemos el canal de salida
-                salida = new PrintWriter(
-                        new BufferedWriter(
-                                new OutputStreamWriter(socketCliente.getOutputStream())), true);
+            socketCliente = new Socket("localhost", 4444);
+            // Obtenemos el canal de entrada
+            entrada = new BufferedReader(
+                    new InputStreamReader(socketCliente.getInputStream()));
+            // Obtenemos el canal de salida
+            salida = new PrintWriter(
+                    new BufferedWriter(
+                            new OutputStreamWriter(socketCliente.getOutputStream())), true);
 
-            } catch (IOException e) {
-                System.err.println("No puede establecer canales de E/S para la conexión");
-                System.exit(-1);
-            }
-        
-        
-        /*if (clienteVista.getMensaje().equalsIgnoreCase("")) {
-            try {
-                wait();
-            } catch (InterruptedException ex) {
-                Logger.getLogger(ClienteHilo.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        } */
-        //mensajeUser = clienteVista.getMensaje();
+        } catch (IOException e) {
+            System.err.println("No puede establecer canales de E/S para la conexión");
+            System.exit(-1);
+        }
+
         // La envia al servidor por el OutputStream
         if (!register) {
             String conectado = "REGISTER";
@@ -87,6 +79,7 @@ public class ClienteHilo extends Thread {
             idRecibido = entrada.readLine();
             // Envía a la salida estándar la respuesta del servidor
             System.out.println("Respuesta servidor: " + idRecibido);
+            clienteVista.escribirId(idRecibido);
         }
         while (true) {
             try {
@@ -98,29 +91,18 @@ public class ClienteHilo extends Thread {
                 salida = new PrintWriter(
                         new BufferedWriter(
                                 new OutputStreamWriter(socketCliente.getOutputStream())), true);
-                objectInputStream = new ObjectInputStream(socketCliente.getInputStream());
-
             } catch (IOException e) {
                 System.err.println("No puede establecer canales de E/S para la conexión");
                 System.exit(-1);
             }
-
-            try {
-                miTablero = (Tablero) objectInputStream.readObject();
-            } catch (ClassNotFoundException ex) {
-                Logger.getLogger(ClienteHilo.class.getName()).log(Level.SEVERE, null, ex);
-            }
             
             
             
-            String[] partes = obtenerArrayDesdeMensaje(mensajeUser);
-            String premio = "";
-            try {
-                premio = miTablero.obtenerPremio(Integer.valueOf(partes[0]), Integer.valueOf(partes[1]));
-            } catch (InterruptedException ex) {
-                Logger.getLogger(ClienteHilo.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            clienteVista.appendTextArea(partes[0], partes[1], premio);
+            
+            
+            String mensajeDelServidor = entrada.readLine();
+            String[] partes = obtenerArrayDesdeMensaje(mensajeDelServidor);
+            clienteVista.appendTextArea(partes[0], partes[1], partes[2]);
 
             // Libera recursos
             salida.close();
