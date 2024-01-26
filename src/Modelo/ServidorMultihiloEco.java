@@ -21,11 +21,12 @@ class HiloServidor implements Runnable {
     private final static String COD_TEXTO = "UTF-8";
     private final Socket socketComunicacion;
     private final Tablero tablero;
-    private int id = 0;
+    private int id = 1;
 
-    HiloServidor(Socket socketComunicacion, Tablero miTablero) {
+    HiloServidor(Socket socketComunicacion, Tablero miTablero,int id) {
         this.socketComunicacion = socketComunicacion;
         this.tablero = miTablero;
+        this.id = id;
     }
 
     @Override
@@ -38,21 +39,16 @@ class HiloServidor implements Runnable {
     }
 
     private void empezarServidor() throws InterruptedException {
-        try (
-                 InputStream isDeCliente = this.socketComunicacion.getInputStream();  
-                OutputStream osACliente = this.socketComunicacion.getOutputStream();  
-                InputStreamReader isrDeCliente = new InputStreamReader(isDeCliente, COD_TEXTO);  
-                BufferedReader brDeCliente = new BufferedReader(isrDeCliente);  
-                OutputStreamWriter oswACliente = new OutputStreamWriter(osACliente, COD_TEXTO);  
-                BufferedWriter bwACliente = new BufferedWriter(oswACliente)) {
+
+        try ( InputStream isDeCliente = this.socketComunicacion.getInputStream();  OutputStream osACliente = this.socketComunicacion.getOutputStream();  InputStreamReader isrDeCliente = new InputStreamReader(isDeCliente, COD_TEXTO);  BufferedReader brDeCliente = new BufferedReader(isrDeCliente);  OutputStreamWriter oswACliente = new OutputStreamWriter(osACliente, COD_TEXTO);  BufferedWriter bwACliente = new BufferedWriter(oswACliente)) {
 
             String lineaRecibida;
             while ((lineaRecibida = brDeCliente.readLine()) != null && lineaRecibida.length() > 0) {
 
                 if (lineaRecibida.equals("REGISTER")) {
-                    enviarMensajeAlCliente(bwACliente, id++);
-                   
+                    enviarMensajeAlCliente(bwACliente, id);
                 } else {
+
                     System.out.println("Recibido: " + lineaRecibida);
                     //Comprobar en el tablero si hay premio
                     int[] coordenadas = obtenerCoordenadasDesdeMensaje(lineaRecibida);
@@ -65,34 +61,27 @@ class HiloServidor implements Runnable {
                         System.out.println("El mensaje no tiene el formato correcto.");
                     }
                     String premio = tablero.obtenerPremio(fila, columna);
+
                     if (!premio.equalsIgnoreCase("")) {
                         bwACliente.write(fila + "," + columna + "," + premio);
+
+                        bwACliente.newLine();
+                        bwACliente.flush();
                     } else {
                         bwACliente.write(fila + "," + columna + "," + "SIN PREMIO");
-                    }
-                    bwACliente.newLine();
-                    bwACliente.flush();
-                   
-                }
 
-                
-                /* */
+                        bwACliente.newLine();
+                        bwACliente.flush();
+                    }
+
+                }
             }
         } catch (IOException ex) {
             System.out.println("Excepción de E/S");
             ex.printStackTrace();
             System.exit(1);
-        }/* catch (InterruptedException ex) {
-            Logger.getLogger(HiloServidor.class.getName()).log(Level.SEVERE, null, ex);
-        }*/ finally {
-            if (this.socketComunicacion != null) {
-                try {
-                    this.socketComunicacion.close();
-                    System.out.println("Cliente desconectado.");
-                } catch (IOException ex) {
-                }
-            }
         }
+
     }
 
     private static void enviarMensajeAlCliente(BufferedWriter bwACliente, int mensaje) {
@@ -106,7 +95,28 @@ class HiloServidor implements Runnable {
         }
     }
 
+    private void enviarMensajeAlClienteString(String mensaje) throws IOException {
+        try ( ServerSocket socketServidor = new ServerSocket(4443);) {
+            System.out.printf("Creado socket de servidor en puerto %d. Esperando conexiones de clientes.\n", 4443);
+
+            while (true) {    // Acepta una conexión de cliente tras otra
+                Socket socketComNuevoCliente = socketServidor.accept();
+
+                try ( InputStream isDeCliente = socketComNuevoCliente.getInputStream();  OutputStream osACliente = socketComNuevoCliente.getOutputStream();  InputStreamReader isrDeCliente = new InputStreamReader(isDeCliente, COD_TEXTO);  BufferedReader brDeCliente = new BufferedReader(isrDeCliente);  OutputStreamWriter oswACliente = new OutputStreamWriter(osACliente, COD_TEXTO);  BufferedWriter bwACliente = new BufferedWriter(oswACliente)) {
+
+                    bwACliente.write(String.valueOf(mensaje));
+                    bwACliente.newLine();
+                    bwACliente.flush();
+                } catch (Exception e) {
+                }
+
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(HiloServidor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
     // Método para obtener las coordenadas desde un mensaje
+
     private static int[] obtenerCoordenadasDesdeMensaje(String mensaje) {
         try {
             // Dividir el mensaje en partes usando el espacio como delimitador
@@ -136,17 +146,16 @@ class ServidorMultihiloEco {
     public static void main(String[] args) {
 
         int numPuerto = 4444;
-        int id = 0;
+        int idCliente = 1;
         Tablero miTablero = new Tablero();
         try ( ServerSocket socketServidor = new ServerSocket(numPuerto)) {
             System.out.printf("Creado socket de servidor en puerto %d. Esperando conexiones de clientes.\n", numPuerto);
 
             while (true) {    // Acepta una conexión de cliente tras otra
                 Socket socketComNuevoCliente = socketServidor.accept();
-                System.out.printf("Cliente conectado desde %s:%d\n",
-                        socketComNuevoCliente.getInetAddress().getHostAddress());
-                
-                Thread hiloSesion = new Thread(new HiloServidor(socketComNuevoCliente, miTablero));
+                System.out.println("Cliente conectado => " + idCliente);
+
+                Thread hiloSesion = new Thread(new HiloServidor(socketComNuevoCliente, miTablero,idCliente++));
                 hiloSesion.start();
             }
 
