@@ -1,5 +1,6 @@
 package Modelo;
 
+import static Modelo.ServidorMultihiloEco.encontrarPremios;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.IOException;
@@ -23,7 +24,7 @@ class HiloServidor implements Runnable {
     private final Tablero tablero;
     private int id = 1;
 
-    HiloServidor(Socket socketComunicacion, Tablero miTablero,int id) {
+    HiloServidor(Socket socketComunicacion, Tablero miTablero, int id) {
         this.socketComunicacion = socketComunicacion;
         this.tablero = miTablero;
         this.id = id;
@@ -44,34 +45,43 @@ class HiloServidor implements Runnable {
 
             String lineaRecibida;
             while ((lineaRecibida = brDeCliente.readLine()) != null && lineaRecibida.length() > 0) {
-
+                System.out.println(encontrarPremios(tablero.getTablero()));
                 if (lineaRecibida.equals("REGISTER")) {
-                    enviarMensajeAlCliente(bwACliente, id);
+                    enviarMensajeAlCliente(bwACliente, id,tablero);
                 } else {
 
                     System.out.println("Recibido: " + lineaRecibida);
-                    //Comprobar en el tablero si hay premio
-                    int[] coordenadas = obtenerCoordenadasDesdeMensaje(lineaRecibida);
-                    int fila = 0;
-                    int columna = 0;
-                    if (coordenadas != null) {
-                        fila = coordenadas[0];
-                        columna = coordenadas[1];
-                    } else {
-                        System.out.println("El mensaje no tiene el formato correcto.");
-                    }
-                    String premio = tablero.obtenerPremio(fila, columna);
-
-                    if (!premio.equalsIgnoreCase("")) {
-                        bwACliente.write(fila + "," + columna + "," + premio);
-
+                    if (lineaRecibida.equalsIgnoreCase("EXIT")) {
+                        System.out.println("Cliente desconectado => ID:" + id);
+                        bwACliente.write("EXIT");
                         bwACliente.newLine();
                         bwACliente.flush();
                     } else {
-                        bwACliente.write(fila + "," + columna + "," + "SIN PREMIO");
+                        if (tablero.hayPremios(tablero.getTablero())) {
+                            int[] coordenadas = obtenerCoordenadasDesdeMensaje(lineaRecibida);
+                            int fila = 0;
+                            int columna = 0;
+                            if (coordenadas != null) {
+                                fila = coordenadas[0];
+                                columna = coordenadas[1];
+                            } else {
+                                System.out.println("El mensaje no tiene el formato correcto.");
+                            }
+                            //Comprobar en el tablero si hay premio
+                            String premio = tablero.obtenerPremio(fila, columna);
 
-                        bwACliente.newLine();
-                        bwACliente.flush();
+                            bwACliente.write(fila + "," + columna + "," + premio);
+
+                            bwACliente.newLine();
+                            bwACliente.flush();
+                        }else{
+                            bwACliente.write("NO HAY MAS PREMIOS DISPONIBLES");
+
+                            bwACliente.newLine();
+                            bwACliente.flush();
+                        }
+                        
+
                     }
 
                 }
@@ -81,15 +91,24 @@ class HiloServidor implements Runnable {
             ex.printStackTrace();
             System.exit(1);
         }
-
+        System.out.println("Cliente Desconectado ---->" + id);
     }
 
-    private static void enviarMensajeAlCliente(BufferedWriter bwACliente, int mensaje) {
+    private static void enviarMensajeAlCliente(BufferedWriter bwACliente, int mensaje,Tablero tableros) {
         try {
-            bwACliente.write(String.valueOf(mensaje));
-            bwACliente.newLine();
-            bwACliente.flush();
-            System.out.println("Mensaje enviado al cliente: " + mensaje);
+            if (tableros.hayPremios(tableros.getTablero())){
+                 bwACliente.write(String.valueOf(mensaje));
+                bwACliente.newLine();
+                bwACliente.flush();
+                System.out.println("Mensaje enviado al cliente: " + mensaje);
+            }else{
+                bwACliente.write(String.valueOf("NO HAY MAS PREMIOS DISPONIBLES"));
+                bwACliente.newLine();
+                bwACliente.flush();
+                System.out.println("Mensaje enviado al cliente: " + "NO HAY MAS PREMIOS DISPONIBLES");
+            }
+            
+           
         } catch (IOException ex) {
             Logger.getLogger(HiloServidor.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -153,9 +172,9 @@ class ServidorMultihiloEco {
 
             while (true) {    // Acepta una conexión de cliente tras otra
                 Socket socketComNuevoCliente = socketServidor.accept();
-                System.out.println("Cliente conectado => " + idCliente);
+                System.out.println("Cliente conectado => ID:" + idCliente);
 
-                Thread hiloSesion = new Thread(new HiloServidor(socketComNuevoCliente, miTablero,idCliente++));
+                Thread hiloSesion = new Thread(new HiloServidor(socketComNuevoCliente, miTablero, idCliente++));
                 hiloSesion.start();
             }
 
@@ -164,6 +183,29 @@ class ServidorMultihiloEco {
             ex.printStackTrace();
             System.exit(1);
         }
+    }
+
+    public static String encontrarPremios(String[][] tablero) {
+        StringBuilder mensaje = new StringBuilder("Premios en las posiciones: ");
+        boolean premioEncontrado = false;
+
+        for (int i = 0; i < tablero.length; i++) {
+            for (int j = 0; j < tablero[i].length; j++) {
+                if (!tablero[i][j].isEmpty()) {
+                    if (premioEncontrado) {
+                        mensaje.append(", ");
+                    }
+                    mensaje.append("[").append(i).append(",").append(j).append("]");
+                    premioEncontrado = true;
+                }
+            }
+        }
+
+        if (!premioEncontrado) {
+            mensaje.append("No se encontraron premios en el tablero.");
+        }
+
+        return mensaje.toString();
     }
 
 }

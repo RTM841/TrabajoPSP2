@@ -35,7 +35,10 @@ public class Cliente extends javax.swing.JDialog {
         initComponents();
          clienteThread = new ClienteHilo(this);
          clienteThread.start();
-        
+        jTFid.setEditable(false);
+        jTFjugadas.setEditable(false);
+        jTFpremios.setEditable(false);
+        jTApanel.setEditable(false);
     }
 
     /**
@@ -67,28 +70,10 @@ public class Cliente extends javax.swing.JDialog {
         jLabel1.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         jLabel1.setText("ID:");
 
-        jTFid.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTFidActionPerformed(evt);
-            }
-        });
-
         jLabel2.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         jLabel2.setText("FILA");
 
-        jTFfila.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTFfilaActionPerformed(evt);
-            }
-        });
-
         jLabel3.setText("COLUMNA");
-
-        jTFcolumna.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTFcolumnaActionPerformed(evt);
-            }
-        });
 
         jTApanel.setColumns(20);
         jTApanel.setRows(5);
@@ -110,19 +95,7 @@ public class Cliente extends javax.swing.JDialog {
 
         jLabel4.setText("Jugadas:");
 
-        jTFjugadas.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTFjugadasActionPerformed(evt);
-            }
-        });
-
         jLabel5.setText("Premios:");
-
-        jTFpremios.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTFpremiosActionPerformed(evt);
-            }
-        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -210,38 +183,20 @@ public class Cliente extends javax.swing.JDialog {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jTFidActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTFidActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTFidActionPerformed
-
-    private void jTFfilaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTFfilaActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTFfilaActionPerformed
-
-    private void jTFjugadasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTFjugadasActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTFjugadasActionPerformed
-
-    private void jTFpremiosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTFpremiosActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTFpremiosActionPerformed
-
-    private void jTFcolumnaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTFcolumnaActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTFcolumnaActionPerformed
-
     private void jBenviarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBenviarActionPerformed
+        String fila = jTFfila.getText();
+        String columna = jTFcolumna.getText();
         jugadas++;
         if (jugadas <= 4) {
             jTFjugadas.setText(String.valueOf(jugadas));
-            String fila = jTFfila.getText();
-            String columna = jTFcolumna.getText();
+            
              mensaje = fila + " " + columna;
              clienteThread.enviarMensajeAlServidor(mensaje);
             //enviarMensajeAlServidor(socketCliente, mensaje);
         } else {
             String premios = jTFpremios.getText();
             JOptionPane.showMessageDialog(this, "Ya has jugado demasiado, DESCANSA Y VETE!!! PREMIOS:" + premios);
+            clienteThread.enviarMensajeAlServidor("EXIT");
             dispose();
         }
 
@@ -249,6 +204,7 @@ public class Cliente extends javax.swing.JDialog {
 
     private void jBsalirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBsalirActionPerformed
         dispose();
+        clienteThread.enviarMensajeAlServidor("EXIT");
     }//GEN-LAST:event_jBsalirActionPerformed
     
 
@@ -264,6 +220,12 @@ public class Cliente extends javax.swing.JDialog {
             jTFpremios.setText(String.valueOf(premios));
         }
         
+    }
+    
+    public void noHayPremios(){
+        JOptionPane.showMessageDialog(this, "NO HAY MAS PREMIOS DISPONIBLES");
+        clienteThread.enviarMensajeAlServidor("EXIT");
+        dispose();
     }
     
     public void escribirId(String id){
