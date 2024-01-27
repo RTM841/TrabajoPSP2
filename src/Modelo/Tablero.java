@@ -34,15 +34,27 @@ public class Tablero implements Serializable{
         if (fila >= 0 && fila < getTablero().length && columna >= 0 && columna < getTablero()[fila].length) {
             premio = getTablero()[fila][columna];
         } else {
-            premio = ""; // Fuera de las dimensiones del tablero
+          return "NO ES UNA COMBINACIÓN VALIDA"; // Fuera de las dimensiones del tablero
         }
 
-        if (!premio.isEmpty()) {
+        if (!premio.equals("")) {
             getTablero()[fila][columna] = "";
             return premio;
         } else {
-            return premio;
+            return "SIN PREMIO";
         }
     }
+    
+    public boolean hayPremios(String[][] tablero) {
+        for (int i = 0; i < tablero.length; i++) {
+            for (int j = 0; j < tablero[i].length; j++) {
+                if (!tablero[i][j].equals("")) {
+                    return true; // Si encuentra al menos un premio, devuelve true
+                }
+            }
+        }
+        return false; // Si no encuentra ningún premio, devuelve false
+    }
+    
 
 }

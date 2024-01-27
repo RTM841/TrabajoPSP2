@@ -142,9 +142,6 @@
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="jTFid">
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jTFidActionPerformed"/>
-      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel2">
       <Properties>
@@ -155,9 +152,6 @@
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="jTFfila">
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jTFfilaActionPerformed"/>
-      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel3">
       <Properties>
@@ -165,9 +159,6 @@
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="jTFcolumna">
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jTFcolumnaActionPerformed"/>
-      </Events>
     </Component>
     <Container class="javax.swing.JScrollPane" name="jScrollPane1">
       <AuxValues>
@@ -206,9 +197,6 @@
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="jTFjugadas">
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jTFjugadasActionPerformed"/>
-      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel5">
       <Properties>
@@ -216,9 +204,6 @@
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="jTFpremios">
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jTFpremiosActionPerformed"/>
-      </Events>
     </Component>
   </SubComponents>
 </Form>

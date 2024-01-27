@@ -49,12 +49,12 @@ public class ClienteHilo extends Thread {
             e.printStackTrace();
         }
     }
-    
+
     @Override
     public void run() {
         try {
             try {
-                empezarCliente(entrada,salida);
+                empezarCliente(entrada, salida);
             } catch (InterruptedException ex) {
                 Logger.getLogger(ClienteHilo.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -65,15 +65,15 @@ public class ClienteHilo extends Thread {
         }
     }
 
-    public void empezarCliente(BufferedReader entrada,PrintWriter salida) throws IOException, ClassNotFoundException, InterruptedException {
+    public void empezarCliente(BufferedReader entrada, PrintWriter salida) throws IOException, ClassNotFoundException, InterruptedException {
 
         // Creamos un socket en el lado cliente, enlazado con un
         // servidor que está en la misma máquina que el cliente
         // y que escucha en el puerto 4444
         while (true) {
             try {
-                
-                String idRecibido = "";
+
+                String primerEnvio = "";
                 // La envia al servidor por el OutputStream
                 if (!register) {
 
@@ -81,19 +81,27 @@ public class ClienteHilo extends Thread {
                     salida.println(conectado);
                     register = true;
                     // Recibe la respuesta del servidor por el InputStream
-                    idRecibido = entrada.readLine();
+                    primerEnvio = entrada.readLine();
+                    if (primerEnvio.equalsIgnoreCase("NO HAY MAS PREMIOS DISPONIBLES")) {
+                        clienteVista.noHayPremios();
+                    } else {
+                        System.out.println("Respuesta servidor: " + primerEnvio);
+                        clienteVista.escribirId(primerEnvio);
+                    }
                     // Envía a la salida estándar la respuesta del servidor
-                    System.out.println("Respuesta servidor: " + idRecibido);
-                    clienteVista.escribirId(idRecibido);
 
                 }
                 String mensajeDelServidor = entrada.readLine();
                 if (mensajeDelServidor != null) {
+                    if (mensajeDelServidor.equalsIgnoreCase("EXIT")) {
+                        break;
+                    } else if (mensajeDelServidor.equalsIgnoreCase("NO HAY MAS PREMIOS DISPONIBLES")) {
+                        clienteVista.noHayPremios();
+                    } else {
+                        String[] partes = obtenerArrayDesdeMensaje(mensajeDelServidor);
+                        clienteVista.appendTextArea(partes[0], partes[1], partes[2]);
+                    }
 
-                    String[] partes = obtenerArrayDesdeMensaje(mensajeDelServidor);
-                    clienteVista.appendTextArea(partes[0], partes[1], partes[2]);
-
-                    
                 }
             } catch (IOException e) {
                 System.err.println("No puede establecer canales de E/S para la conexión" + e.getMessage());
@@ -114,11 +122,11 @@ public class ClienteHilo extends Thread {
         try {
             salida = new PrintWriter(socketCliente.getOutputStream(), true);
             if (salida != null) {
-            salida.println(mensaje);
+                salida.println(mensaje);
             }
         } catch (IOException ex) {
             Logger.getLogger(ClienteHilo.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
     }
 }
