@@ -213,10 +213,10 @@ public class Cliente extends javax.swing.JDialog {
         String textoAnterior = jTApanel.getText();
         String textoFinal = textoAnterior + "\n" + "[" + fila + "]" + "[" + columna + "] " + premio;
         jTApanel.setText(textoFinal);
-        if (!premio.equals("SIN PREMIO")) {
-            premios++;
+        if (premio.equalsIgnoreCase("SIN PREMIO") || premio.equalsIgnoreCase("NO ES UNA COMBINACIÓN VALIDA")) {
             jTFpremios.setText(String.valueOf(premios));
         } else {
+           premios++;
             jTFpremios.setText(String.valueOf(premios));
         }
         
