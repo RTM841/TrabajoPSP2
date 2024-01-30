@@ -170,7 +170,7 @@ class ServidorMultihiloEco {
         try ( ServerSocket socketServidor = new ServerSocket(numPuerto)) {
             System.out.printf("Creado socket de servidor en puerto %d. Esperando conexiones de clientes.\n", numPuerto);
 
-            while (true) {    // Acepta una conexión de cliente tras otra
+            while (true) {    // Acepta una conexión de cliente tras otra 
                 Socket socketComNuevoCliente = socketServidor.accept();
                 System.out.println("Cliente conectado => ID:" + idCliente);
 
