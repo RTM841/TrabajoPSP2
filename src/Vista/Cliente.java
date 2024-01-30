@@ -21,7 +21,7 @@ import javax.swing.JOptionPane;
  * @author ruben
  */
 public class Cliente extends javax.swing.JDialog {
-    
+
     private int jugadas = 0;
     private int premios = 0;
     private int intentos = 0;
@@ -29,12 +29,12 @@ public class Cliente extends javax.swing.JDialog {
     ClienteHilo clienteThread;
     private String mensaje = "";
     Socket socketCliente = null;
-    
+
     public Cliente(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
-         clienteThread = new ClienteHilo(this);
-         clienteThread.start();
+        clienteThread = new ClienteHilo(this);
+        clienteThread.start();
         jTFid.setEditable(false);
         jTFjugadas.setEditable(false);
         jTFpremios.setEditable(false);
@@ -187,26 +187,49 @@ public class Cliente extends javax.swing.JDialog {
         String fila = jTFfila.getText();
         String columna = jTFcolumna.getText();
         jugadas++;
-        if (jugadas <= 4) {
-            jTFjugadas.setText(String.valueOf(jugadas));
-            
-             mensaje = fila + " " + columna;
-             clienteThread.enviarMensajeAlServidor(mensaje);
-            //enviarMensajeAlServidor(socketCliente, mensaje);
+        if (!fila.equalsIgnoreCase("") || !columna.equalsIgnoreCase("")) {
+            if (esNumero(columna) && esNumero(fila)) {
+                if (jugadas <= 4) {
+                    jTFjugadas.setText(String.valueOf(jugadas));
+
+                    mensaje = fila + " " + columna;
+                    clienteThread.enviarMensajeAlServidor(mensaje);
+                    //enviarMensajeAlServidor(socketCliente, mensaje);
+                } else {
+                    String premios = jTFpremios.getText();
+                    JOptionPane.showMessageDialog(this, "Ya has jugado demasiado, DESCANSA Y VETE!!! PREMIOS:" + premios);
+                    clienteThread.enviarMensajeAlServidor("EXIT");
+                    dispose();
+                }
+            }else{
+                JOptionPane.showMessageDialog(this, "Introduce un formato valido.");
+            }
         } else {
-            String premios = jTFpremios.getText();
-            JOptionPane.showMessageDialog(this, "Ya has jugado demasiado, DESCANSA Y VETE!!! PREMIOS:" + premios);
-            clienteThread.enviarMensajeAlServidor("EXIT");
-            dispose();
+            JOptionPane.showMessageDialog(this, "Introduce un formato valido.");
         }
 
+
     }//GEN-LAST:event_jBenviarActionPerformed
+
+    // Método para comprobar si una cadena es un número
+    public static boolean esNumero(String cadena) {
+        if (cadena == null || cadena.isEmpty()) {
+            return false;
+        }
+
+        // Intenta convertir la cadena a número
+        try {
+            Double.parseDouble(cadena);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
 
     private void jBsalirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBsalirActionPerformed
         dispose();
         clienteThread.enviarMensajeAlServidor("EXIT");
     }//GEN-LAST:event_jBsalirActionPerformed
-    
 
     //Metodo que se utiliza para añadir texto en mi textArea, de los demas clientes
     public void appendTextArea(String fila, String columna, String premio) {
@@ -216,30 +239,30 @@ public class Cliente extends javax.swing.JDialog {
         if (premio.equalsIgnoreCase("SIN PREMIO") || premio.equalsIgnoreCase("NO ES UNA COMBINACIÓN VALIDA")) {
             jTFpremios.setText(String.valueOf(premios));
         } else {
-           premios++;
+            premios++;
             jTFpremios.setText(String.valueOf(premios));
         }
-        
+
     }
-    
-    public void noHayPremios(){
+
+    public void noHayPremios() {
         JOptionPane.showMessageDialog(this, "NO HAY MAS PREMIOS DISPONIBLES");
         clienteThread.enviarMensajeAlServidor("EXIT");
         dispose();
     }
-    
-    public void escribirId(String id){
+
+    public void escribirId(String id) {
         jTFid.setText(id);
     }
-    
+
     public String getMensaje() {
         return mensaje;
     }
-    
+
     public void setMensaje(String mensaje) {
         this.mensaje = mensaje;
     }
-    
+
     public void escribirId(Integer id) {
         jTFid.setText(String.valueOf(id));
     }
@@ -309,7 +332,6 @@ public class Cliente extends javax.swing.JDialog {
     // End of variables declaration//GEN-END:variables
 
     private void iniciarCliente() {
-            
-       
+
     }
 }
